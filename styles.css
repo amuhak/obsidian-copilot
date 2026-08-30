@@ -1,0 +1,16 @@
+.ghostwriter-ghost {
+	opacity: 0.42;
+	font-style: italic;
+	pointer-events: none;
+	white-space: pre-wrap;
+}
+
+.ghostwriter-prompt-input {
+	width: 100%;
+}
+
+.ghostwriter-prompt-status {
+	margin-top: 0.5em;
+	opacity: 0.7;
+	white-space: pre-wrap;
+}

@@ -1,0 +1,10 @@
+{
+	"id": "ghostwriter",
+	"name": "Ghostwriter",
+	"version": "1.0.0",
+	"minAppVersion": "1.4.0",
+	"description": "Inline ghost-text completion and cursor-anchored AI edits, powered by your own local LLM server.",
+	"author": "Amulya Jain",
+	"authorUrl": "https://github.com/amuhak",
+	"isDesktopOnly": false
+}

@@ -1,0 +1,19 @@
+# npm
+node_modules/
+
+# Build output — ships in GitHub releases, not the repo
+main.js
+*.map
+
+# Obsidian plugin runtime data (contains your server URL / settings)
+data.json
+
+# editors
+.vscode/
+.idea/
+*.iml
+
+.DS_Store
+
+# Local scratch vault for testing. Not part of the plugin.
+test-vault/
