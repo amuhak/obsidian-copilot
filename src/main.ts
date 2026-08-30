@@ -112,7 +112,8 @@ export default class GhostwriterPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const stored = (await this.loadData()) as Partial<GhostwriterSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, stored ?? {});
 	}
 
 	async saveSettings() {
@@ -145,7 +146,7 @@ class EditPromptModal extends Modal {
 			cls: "ghostwriter-prompt-input",
 		});
 
-		const status = contentEl.createEl("div", { cls: "ghostwriter-prompt-status" });
+		const status = contentEl.createDiv({ cls: "ghostwriter-prompt-status" });
 
 		const submit = async () => {
 			const instruction = input.value.trim();
@@ -166,7 +167,8 @@ class EditPromptModal extends Modal {
 				else this.editor.replaceRange(out, this.editor.getCursor());
 				this.close();
 			} catch (e) {
-				status.setText(`Failed: ${(e as Error).message}`);
+				const message = e instanceof Error ? e.message : String(e);
+				status.setText(`Failed: ${message}`);
 				input.disabled = false;
 			}
 		};
@@ -267,7 +269,6 @@ class GhostwriterSettingTab extends PluginSettingTab {
 				s
 					.setLimits(100, 1500, 50)
 					.setValue(this.plugin.settings.debounceMs)
-					.setDynamicTooltip()
 					.onChange(async (v) => {
 						this.plugin.settings.debounceMs = v;
 						await save();
@@ -281,7 +282,6 @@ class GhostwriterSettingTab extends PluginSettingTab {
 				s
 					.setLimits(8, 128, 8)
 					.setValue(this.plugin.settings.maxTokens)
-					.setDynamicTooltip()
 					.onChange(async (v) => {
 						this.plugin.settings.maxTokens = v;
 						await save();

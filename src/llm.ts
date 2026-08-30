@@ -1,9 +1,20 @@
 import { GhostwriterSettings } from "./settings";
 
+/** Only the fields we read off an SSE frame. */
+interface CompletionChunk {
+	choices?: { text?: string }[];
+}
+interface ChatChunk {
+	choices?: { delta?: { content?: string } }[];
+}
+
 /**
  * Completion + edit calls against a llama.cpp server.
  *
- * Uses plain fetch rather than Obsidian's requestUrl: llama.cpp echoes the
+ * Uses plain fetch rather than Obsidian's requestUrl by design. requestUrl
+ * buffers the whole response and offers no cancellation, which would remove
+ * both token streaming and AbortController - the two things that make ghost
+ * text feel immediate. llama.cpp echoes the
  * Origin header back as Access-Control-Allow-Origin and answers preflight, so
  * CORS is not an obstacle, and fetch gives us AbortController and streaming.
  *
@@ -84,7 +95,8 @@ export async function completeStream(
 			const payload = line.slice(5).trim();
 			if (payload === "[DONE]") return reconcile(acc);
 			try {
-				const token: string = JSON.parse(payload)?.choices?.[0]?.text ?? "";
+				const chunk = JSON.parse(payload) as CompletionChunk;
+				const token = chunk.choices?.[0]?.text ?? "";
 				if (token) {
 					acc += token;
 					onToken(reconcile(acc));
@@ -147,8 +159,8 @@ export async function edit(
 			const payload = line.slice(5).trim();
 			if (payload === "[DONE]") return acc.trim();
 			try {
-				const delta: string =
-					JSON.parse(payload)?.choices?.[0]?.delta?.content ?? "";
+				const chunk = JSON.parse(payload) as ChatChunk;
+				const delta = chunk.choices?.[0]?.delta?.content ?? "";
 				if (delta) {
 					acc += delta;
 					onToken?.(acc);

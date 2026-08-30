@@ -37,10 +37,7 @@ class GhostWidget extends WidgetType {
 		return other.text === this.text;
 	}
 	toDOM() {
-		const span = document.createElement("span");
-		span.className = "ghostwriter-ghost";
-		span.textContent = this.text;
-		return span;
+		return createSpan({ cls: "ghostwriter-ghost", text: this.text });
 	}
 }
 
