@@ -1,6 +1,6 @@
 {
 	"name": "ghostwriter",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Inline ghost-text completion and cursor-anchored AI edits, powered by your own local LLM server.",
 	"main": "main.js",
 	"scripts": {
