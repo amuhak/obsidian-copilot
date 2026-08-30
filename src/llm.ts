@@ -30,6 +30,11 @@ interface ChatChunk {
  * Calls onToken with the accumulated text so far, then resolves with the whole
  * completion.
  */
+/** Settings hold whatever was typed, so a trailing slash would double up here. */
+function endpoint(settings: GhostwriterSettings, path: string): string {
+	return `${settings.baseUrl.replace(/\/+$/, "")}${path}`;
+}
+
 /** Bearer header only when a key is configured, so local servers stay unauthenticated. */
 function headers(settings: GhostwriterSettings): Record<string, string> {
 	const h: Record<string, string> = { "Content-Type": "application/json" };
@@ -54,7 +59,7 @@ export async function completeStream(
 	const reconcile = (text: string) =>
 		userTypedSpace ? text.replace(/^[ \t]+/, "") : text;
 
-	const res = await fetch(`${settings.baseUrl}/v1/completions`, {
+	const res = await fetch(endpoint(settings, "/v1/completions"), {
 		method: "POST",
 		headers: headers(settings),
 		signal,
@@ -124,7 +129,7 @@ export async function edit(
 		? `Instruction: ${instruction}\n\nText:\n${selection}`
 		: `Instruction: ${instruction}`;
 
-	const res = await fetch(`${settings.baseUrl}/v1/chat/completions`, {
+	const res = await fetch(endpoint(settings, "/v1/chat/completions"), {
 		method: "POST",
 		headers: headers(settings),
 		signal,

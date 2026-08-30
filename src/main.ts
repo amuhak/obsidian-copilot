@@ -6,7 +6,7 @@ import {
 	Notice,
 	Plugin,
 	PluginSettingTab,
-	Setting,
+	SettingDefinitionItem,
 } from "obsidian";
 import { GhostwriterSettings, DEFAULT_SETTINGS } from "./settings";
 import type { EditorView } from "@codemirror/view";
@@ -194,113 +194,71 @@ class GhostwriterSettingTab extends PluginSettingTab {
 		super(app, plugin);
 	}
 
-	display(): void {
-		const { containerEl } = this;
-		containerEl.empty();
-
-		const save = () => this.plugin.saveSettings();
-
-		new Setting(containerEl)
-			.setName("Server URL")
-			.setDesc(
-				"Your LLM server. Use an IP address, not 'localhost' — on Windows that " +
-					"resolves to IPv6 first and wastes a failed connection on every request."
-			)
-			.addText((t) =>
-				t.setValue(this.plugin.settings.baseUrl).onChange(async (v) => {
-					this.plugin.settings.baseUrl = v.replace(/\/+$/, "");
-					await save();
-				})
-			);
-
-		new Setting(containerEl).setName("Model").addText((t) =>
-			t.setValue(this.plugin.settings.model).onChange(async (v) => {
-				this.plugin.settings.model = v;
-				await save();
-			})
-		);
-
-		new Setting(containerEl)
-			.setName("API key")
-			.setDesc(
-				"Optional. Sent as an Authorization: Bearer header. Leave empty for " +
-					"a local llama.cpp server; needed if you put it behind a proxy " +
-					"that requires auth."
-			)
-			.addText((t) => {
-				t.inputEl.type = "password";
-				t.setPlaceholder("(none)")
-					.setValue(this.plugin.settings.apiKey)
-					.onChange(async (v) => {
-						this.plugin.settings.apiKey = v.trim();
-						await save();
-					});
-			});
-
-		new Setting(containerEl)
-			.setName("Override Ctrl+I inside the editor")
-			.setDesc(
-				"Claim Ctrl+I for inline edit while typing, shadowing the built-in " +
-					"italics command. Off by default because the Hotkeys tab still " +
-					"shows italics as bound, so the conflict is invisible. Prefer " +
-					"assigning a hotkey to \"Inline edit at cursor\" instead."
-			)
-			.addToggle((t) =>
-				t.setValue(this.plugin.settings.overrideItalics).onChange(async (v) => {
-					this.plugin.settings.overrideItalics = v;
-					await save();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("Inline completion")
-			.setDesc("Show ghost text as you type.")
-			.addToggle((t) =>
-				t.setValue(this.plugin.settings.enabled).onChange(async (v) => {
-					this.plugin.settings.enabled = v;
-					await save();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("Trigger delay (ms)")
-			.setDesc("Idle time after typing before a suggestion is requested.")
-			.addSlider((s) =>
-				s
-					.setLimits(100, 1500, 50)
-					.setValue(this.plugin.settings.debounceMs)
-					.onChange(async (v) => {
-						this.plugin.settings.debounceMs = v;
-						await save();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Max tokens")
-			.setDesc("Upper bound on suggestion length.")
-			.addSlider((s) =>
-				s
-					.setLimits(8, 128, 8)
-					.setValue(this.plugin.settings.maxTokens)
-					.onChange(async (v) => {
-						this.plugin.settings.maxTokens = v;
-						await save();
-					})
-			);
-
-		new Setting(containerEl)
-			.setName("Context characters")
-			.setDesc("How much text before the cursor is sent as context.")
-			.addText((t) =>
-				t
-					.setValue(String(this.plugin.settings.contextChars))
-					.onChange(async (v) => {
-						const n = parseInt(v, 10);
-						if (!isNaN(n) && n > 0) {
-							this.plugin.settings.contextChars = n;
-							await save();
-						}
-					})
-			);
+	// Declarative settings (1.13+). Obsidian reads and writes plugin.settings
+	// directly and persists on change, so the closure the editor extension
+	// holds sees updates without a reload. It also makes these searchable from
+	// the settings search, which display() does not.
+	getSettingDefinitions(): SettingDefinitionItem[] {
+		return [
+			{
+				name: "Server URL",
+				desc: "Your LLM server. Use an IP address, not 'localhost'.",
+				control: {
+					type: "text",
+					key: "baseUrl",
+					placeholder: "http://127.0.0.1:8080",
+				},
+			},
+			{
+				name: "Model",
+				desc: "Ignored by llama.cpp; used by backends that route on model name.",
+				control: { type: "text", key: "model", placeholder: "local-model" },
+			},
+			{
+				name: "API key",
+				desc: "Optional. Sent as an Authorization: Bearer header when set.",
+				control: { type: "text", key: "apiKey", placeholder: "(none)" },
+			},
+			{
+				name: "Inline completion",
+				desc: "Show ghost text as you type.",
+				control: { type: "toggle", key: "enabled" },
+			},
+			{
+				name: "Trigger delay",
+				desc: "Idle time after typing before a suggestion is requested.",
+				control: {
+					type: "slider",
+					key: "debounceMs",
+					min: 100,
+					max: 1500,
+					step: 50,
+					displayFormat: (v) => `${v} ms`,
+				},
+			},
+			{
+				name: "Max tokens",
+				desc: "Upper bound on suggestion length.",
+				control: { type: "slider", key: "maxTokens", min: 8, max: 128, step: 8 },
+			},
+			{
+				name: "Context characters",
+				desc: "How much text before the cursor is sent as context.",
+				control: {
+					type: "number",
+					key: "contextChars",
+					min: 200,
+					max: 20000,
+					step: 100,
+				},
+			},
+			{
+				name: "Override Ctrl+I in editor",
+				desc:
+					"Claim Ctrl+I for inline edit while typing, shadowing the built-in " +
+					"italics command. The Hotkeys tab will still show italics as bound.",
+				control: { type: "toggle", key: "overrideItalics" },
+			},
+		];
 	}
 }
