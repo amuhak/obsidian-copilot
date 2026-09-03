@@ -1,6 +1,6 @@
 # Ghostwriter
 
-Inline completion for Obsidian, backed by your own LLM server.
+Inline completion and AI edits for Obsidian, backed by any LLM server you choose.
 
 ```
 - A page fault occurs when▏a process accesses memory not in physical RAM
