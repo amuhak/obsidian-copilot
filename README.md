@@ -43,6 +43,7 @@ Point it at an IP, not `localhost` — on Windows that resolves to IPv6 first an
 | --- | --- |
 | Server URL | `http://127.0.0.1:8080` |
 | Model | `local-model` — ignored by llama.cpp, used by backends that route on it |
+| Subject | empty — one line on what you take notes about, sent with every completion. The note title goes too, so a new note is not completed blind |
 | API key | empty — sent as `Authorization: Bearer` only when set |
 | Trigger delay | 300 ms |
 | Max tokens | 48 |

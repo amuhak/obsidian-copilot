@@ -91,7 +91,10 @@ export function dismiss(view: EditorView): boolean {
 	return true;
 }
 
-function requestPlugin(getSettings: () => GhostwriterSettings) {
+function requestPlugin(
+	getSettings: () => GhostwriterSettings,
+	getTitle: () => string
+) {
 	return ViewPlugin.fromClass(
 		class {
 			timer: number | null = null;
@@ -131,18 +134,23 @@ function requestPlugin(getSettings: () => GhostwriterSettings) {
 					// Render each token as it lands rather than waiting for the
 					// whole line, so the first word or two is visible almost
 					// immediately.
-					await completeStream(settings, prefix, controller.signal, (acc) => {
-						if (controller.signal.aborted || !acc.trim()) return;
-						// The cursor moved while the stream was open; the
-						// suggestion no longer belongs anywhere.
-						if (this.view.state.selection.main.head !== pos) {
-							controller.abort();
-							return;
+					await completeStream(
+						settings,
+						{ title: getTitle(), prefix },
+						controller.signal,
+						(acc) => {
+							if (controller.signal.aborted || !acc.trim()) return;
+							// The cursor moved while the stream was open; the
+							// suggestion no longer belongs anywhere.
+							if (this.view.state.selection.main.head !== pos) {
+								controller.abort();
+								return;
+							}
+							this.view.dispatch({
+								effects: setSuggestion.of({ text: acc, pos }),
+							});
 						}
-						this.view.dispatch({
-							effects: setSuggestion.of({ text: acc, pos }),
-						});
-					});
+					);
 				} catch {
 					// Server down or request aborted: no suggestion, no noise.
 				}
@@ -158,12 +166,13 @@ function requestPlugin(getSettings: () => GhostwriterSettings) {
 
 export function ghostTextExtension(
 	getSettings: () => GhostwriterSettings,
+	getTitle: () => string,
 	onInlineEdit: () => void
 ): Extension {
 	return [
 		suggestionField,
 		ghostDecorations,
-		requestPlugin(getSettings),
+		requestPlugin(getSettings, getTitle),
 		// Prec.highest so these reach us before Obsidian's own bindings.
 		// This is also how Mod-i beats the built-in italics command: CodeMirror
 		// handles the key on the editor and calls preventDefault, so Obsidian's

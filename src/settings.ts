@@ -4,6 +4,11 @@ export interface GhostwriterSettings {
 	model: string;
 	/** Characters of text before the cursor sent as context. */
 	contextChars: number;
+	/**
+	 * One line describing what the vault is about, prepended to every
+	 * completion prompt. A note title alone ("Lecture 12") often says nothing.
+	 */
+	subject: string;
 	/** Idle time after typing before a completion is requested. */
 	debounceMs: number;
 	maxTokens: number;
@@ -29,6 +34,7 @@ export const DEFAULT_SETTINGS: GhostwriterSettings = {
 	// backends that route by model name.
 	model: "local-model",
 	contextChars: 2000,
+	subject: "",
 	debounceMs: 300,
 	maxTokens: 48,
 	temperature: 0.2,

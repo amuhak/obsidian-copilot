@@ -34,6 +34,7 @@ export default class GhostwriterPlugin extends Plugin {
 		this.registerEditorExtension(
 			ghostTextExtension(
 				() => this.settings,
+				() => this.app.workspace.getActiveFile()?.basename ?? "",
 				() => this.openInlineEdit()
 			)
 		);
@@ -218,6 +219,18 @@ class GhostwriterSettingTab extends PluginSettingTab {
 				name: "API key",
 				desc: "Optional. Sent as an Authorization: Bearer header when set.",
 				control: { type: "text", key: "apiKey", placeholder: "(none)" },
+			},
+			{
+				name: "Subject",
+				desc:
+					"One line on what you take notes about, sent with every " +
+					"completion. Gives the model bearings at the top of a note, " +
+					"where a title like 'Lecture 12' tells it nothing.",
+				control: {
+					type: "text",
+					key: "subject",
+					placeholder: "Undergraduate operating systems course",
+				},
 			},
 			{
 				name: "Inline completion",
